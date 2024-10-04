@@ -8,14 +8,14 @@ class VideoTranscriber:
     def __init__(self, model_path, video_path):
         self.model = whisper.load_model(model_path)
         self.video_path = video_path
-        self.audio_path = ""
+        self.audio_path = "test_videos/audio.mp3"
         self.text_array = []
         self.fps = 0
         self.char_width = 0
 
     def transcribe_video(self):
         print("Transcribing Video")
-        result = self.module.transcribe(self.audio_path)
+        result = self.model.transcribe(self.audio_path)
         text = result["segments"][0]["text"]
         textsize = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 0.8, 2)[0]
         cap = cv2.VideoCapture(self.video_path)
@@ -51,12 +51,13 @@ class VideoTranscriber:
                 while remaining_pixels > 0:
                     j += 1
                     if j >= len(words):
-                        lenght_in_pixels = len(words[j]) * self.char_width
-                        remaining_pixels -= lenght_in_pixels
-                        if remaining_pixels < 0:
-                            continue
-                        else:
-                            line += " " + words[i]
+                        break
+                    lenght_in_pixels = len(words[j] + 1) * self.char_width
+                    remaining_pixels -= lenght_in_pixels
+                    if remaining_pixels < 0:
+                        continue
+                    else:
+                        line += " " + words[i]
                 
                 line_array = [line, int(start) + 15, int(len(line) / total_chars*total_frames) + int(start) + 15]
                 start = int(len(line) / total_chars * total_frames) + int(start)
@@ -68,10 +69,17 @@ class VideoTranscriber:
     
     def extract_audio(self, output_audio_path = "test_video/audio.mp3"):
         print("Extracting Audio")
-        audio = VideoFileClip(self.video_path)
-        audio.write_audiofile(output_audio_path)
-        self.audio_path = output_audio_path
-        print("Audio Extraction Complete")
+        # video = VideoFileClip(self.video_path)
+        # audio = video.audio
+        # audio.write_audiofile(output_audio_path)
+        # self.audio_path = output_audio_path
+        # print("Audio Extraction Complete")
+        audio_path = os.path.join(os.path.dirname(self.video_path), "audio.mp3")
+        video = VideoFileClip(self.video_path)
+        audio = video.audio 
+        audio.write_audiofile(audio_path)
+        self.audio_path = audio_path
+        print('Audio extracted')
         
     def extract_frames(self, output_folder):
         print("Extracting Frames")
